@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Gerador de links por corretor — Marcos Milhomem</title>
+<meta name="robots" content="noindex">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root{--areia:#FAF7F2;--papel:#fff;--tinta:#16150F;--grafite:#3D3A32;--suave:#8C8578;--linha:#E6DFD4;--terra:#8A7355;
+--serif:'Playfair Display',Georgia,serif;--sans:'Inter',-apple-system,BlinkMacSystemFont,sans-serif}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{background:var(--areia);color:var(--tinta);font-family:var(--sans);font-weight:300;font-size:16px;line-height:1.65;padding:0 0 60px}
+.wrap{max-width:620px;margin:0 auto;padding:0 22px}
+header{background:var(--tinta);color:#F0EAE0;padding:38px 0 34px;margin-bottom:34px}
+header h1{font-family:var(--serif);font-weight:400;font-size:30px;line-height:1.15;margin-bottom:10px}
+header p{font-size:14.5px;color:#B3AA99;max-width:34em}
+h2{font-family:var(--serif);font-weight:400;font-size:21px;margin:38px 0 14px}
+label{display:block;font-size:10px;letter-spacing:.22em;text-transform:uppercase;color:var(--suave);margin:20px 0 7px;font-weight:500}
+input{width:100%;font-family:var(--sans);font-size:16px;font-weight:400;color:var(--tinta);
+  background:var(--papel);border:1px solid var(--linha);border-radius:2px;padding:14px 15px;outline:0}
+input:focus{border-color:var(--terra)}
+.dica{font-size:13px;color:var(--suave);margin-top:7px;line-height:1.5}
+.saida{background:var(--papel);border:1px solid var(--linha);border-radius:2px;padding:18px 16px;margin-top:12px}
+.saida .rot{font-size:9.5px;letter-spacing:.22em;text-transform:uppercase;color:var(--terra);font-weight:500;margin-bottom:9px;display:block}
+.saida pre{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:13px;line-height:1.6;
+  white-space:pre-wrap;word-break:break-word;color:var(--grafite);margin:0}
+button{margin-top:13px;background:var(--tinta);color:#F7F3EC;border:0;border-radius:2px;
+  font-family:var(--sans);font-size:13px;font-weight:500;letter-spacing:.04em;padding:12px 20px;cursor:pointer}
+button:active{transform:scale(.98)}
+button.ok{background:var(--terra)}
+.aviso{border-left:2px solid var(--terra);padding-left:16px;margin-top:34px;font-size:14.5px;color:var(--grafite)}
+.aviso b{display:block;font-size:9.5px;letter-spacing:.22em;text-transform:uppercase;color:var(--terra);margin-bottom:7px;font-weight:500}
+footer{margin-top:46px;padding-top:22px;border-top:1px solid var(--linha);font-size:12px;color:var(--suave)}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap">
+    <h1>Gerador de links<br>por corretor</h1>
+    <p>Preencha o nome, copie e mande. Cada corretor recebe um link só dele — a página abre com o nome dele no topo e o WhatsApp já chega dizendo de quem veio.</p>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <label for="base">Endereço do guia (cola uma vez só)</label>
+  <input id="base" type="url" value="https://guibispo97.github.io/Marcos-Milhomem/" placeholder="https://guibispo97.github.io/Marcos-Milhomem/" autocomplete="off">
+  <p class="dica">Fica salvo no seu navegador. Só precisa colar de novo se trocar de aparelho.</p>
+
+  <label for="nome">Nome do corretor</label>
+  <input id="nome" type="text" placeholder="Ana Paula" autocomplete="off">
+
+  <label for="imob">Imobiliária <span style="text-transform:none;letter-spacing:0">(opcional)</span></label>
+  <input id="imob" type="text" placeholder="Alfa Imóveis" autocomplete="off">
+
+  <h2>O link dele</h2>
+  <div class="saida">
+    <span class="rot">Link personalizado</span>
+    <pre id="link">preencha o nome acima</pre>
+    <button data-copia="link">Copiar link</button>
+  </div>
+
+  <h2>Mensagem para o corretor</h2>
+  <div class="saida">
+    <span class="rot">Marcos → corretor</span>
+    <pre id="msgCorretor"></pre>
+    <button data-copia="msgCorretor">Copiar mensagem</button>
+  </div>
+
+  <h2>Mensagem que o corretor manda</h2>
+  <div class="saida">
+    <span class="rot">Corretor → cliente</span>
+    <pre id="msgCliente"></pre>
+    <button data-copia="msgCliente">Copiar mensagem</button>
+  </div>
+
+  <div class="aviso">
+    <b>Uma coisa importante</b>
+    Não mande o mesmo link para todo mundo. É o link individual que faz o corretor aparecer na página e que te diz, depois, quem realmente indica. Um link igual para todos apaga exatamente a informação que decide onde você investe tempo.
+  </div>
+
+  <footer>Marcos Milhomem — Arquitetura e Interiores · uso interno</footer>
+</div>
+
+<script>
+const $ = id => document.getElementById(id);
+const campos = ['base','nome','imob'];
+
+// slug seguro pro parâmetro ?c=
+function limpa(s){
+  return s.normalize('NFD').replace(/[\u0300-\u036f]/g,'')  // tira acento
+          .replace(/[^A-Za-z0-9 .&-]/g,'').replace(/\s+/g,' ').trim();
+}
+
+function baseLimpa(v){
+  let s = (v||'').trim();
+  if(!s) return '';
+  if(!/^https?:\/\//i.test(s)) s = 'https://' + s;
+  try{
+    const u = new URL(s);
+    return u.origin + u.pathname.replace(/\/+$/,'');
+  }catch(e){
+    return s.replace(/[?#].*$/,'').replace(/\/+$/,'');
+  }
+}
+
+function monta(){
+  const base = baseLimpa($('base').value);
+  const nome = limpa($('nome').value);
+  const imob = limpa($('imob').value);
+  const quem = imob ? nome + ' - ' + imob : nome;
+
+  try{ campos.forEach(c => localStorage.setItem('mm_'+c, $(c).value)); }catch(e){}
+
+  if(!base || !nome){
+    $('link').textContent = !base ? 'cola primeiro o endereço do guia'
+                                  : 'escreva o nome do corretor';
+    $('msgCorretor').textContent = '—';
+    $('msgCliente').textContent  = '—';
+    return;
+  }
+
+  const url = base + '/?c=' + encodeURIComponent(quem).replace(/%20/g,'+');
+  $('link').textContent = url;
+
+  $('msgCorretor').textContent =
+`Oi ${nome}, tudo bem? Aqui é o Marcos Milhomem, arquiteto de interiores aqui de Palmas.
+
+Montei um material pra quem acabou de comprar imóvel: um roteiro do que decidir depois da chave e em que ordem. O que não tem volta, o que pode esperar, e onde as pessoas costumam gastar duas vezes.
+
+Não é anúncio meu. É material útil mesmo, pra pessoa não errar nos primeiros meses.
+
+Fiz uma versão com o seu nome — quem abrir vê "material enviado por ${quem}" no topo. A ideia é te dar um motivo de voltar a falar com o cliente depois da venda, que é quando a conversa costuma morrer.
+
+${url}
+
+Se não fizer sentido pra você, sem problema nenhum.`;
+
+  $('msgCliente').textContent =
+`Oi [nome do cliente], parabéns de novo pelo apartamento!
+
+Uma coisa que eu vejo muito: a pessoa começa comprando móvel antes de resolver layout e ponto de tomada, e acaba pagando duas vezes.
+
+Achei esse guia que coloca as decisões na ordem certa, do que não tem volta até o que pode esperar. Achei que ia te ajudar nesses primeiros meses:
+
+${url}
+
+Qualquer coisa é só me chamar.`;
+}
+
+document.querySelectorAll('button[data-copia]').forEach(b => {
+  b.addEventListener('click', async () => {
+    const txt = $(b.dataset.copia).textContent;
+    if(!txt || txt === '—') return;
+    try { await navigator.clipboard.writeText(txt); }
+    catch(e){
+      const t = document.createElement('textarea');
+      t.value = txt; document.body.appendChild(t); t.select();
+      document.execCommand('copy'); t.remove();
+    }
+    const antes = b.textContent;
+    b.textContent = 'Copiado'; b.classList.add('ok');
+    setTimeout(()=>{ b.textContent = antes; b.classList.remove('ok'); }, 1400);
+  });
+});
+
+campos.forEach(c => {
+  try{ const v = localStorage.getItem('mm_'+c); if(v) $(c).value = v; }catch(e){}
+  $(c).addEventListener('input', monta);
+});
+monta();
+</script>
+</body>
+</html>
